@@ -8,7 +8,7 @@ def main():
     c = conn.cursor()
     clearScreen()
     while True:
-        print("""Make Selection
+        print("""Make Selection\n
 1) 3NF schema
 2) BCNF schma
 3)Exit\n""")
@@ -38,7 +38,22 @@ def thirdNF(conn):
 def BCNF(conn):
     pass
 def attrClos():
-    pass
+    c = conn.cursor()
+
+    c.execute("select * from Input_FDs_R1") #HELP!!!! I can't generalize to all table
+    relation = c.fetchall()
+
+    closure = raw_input("The attribute :")
+    for dependency in relation:
+        RHS = dependency[0]
+        LHS = dependency[1]
+        if RHS in closure:
+            for char in LHS:
+                if char not in closure:
+                    closure+=char
+    print(closure)
+    conn.commit()
+
 def attrequivalence():
     pass
 def clearScreen():
