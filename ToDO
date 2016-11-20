@@ -1,0 +1,18 @@
+TASK-
+
+Connecting with Database
+1) access and write new relation for given database
+
+Normalization of the schemas
+1)Synthesize a 3NF schema
+2)Synthesize a BCNF schema
+  For each resulting new schemas,
+  create tables for the data, and functional dependencies
+          example:Output_R1_ABC(A,B,C) and Output_FDs_R1_ABC(A->BC)
+
+Create the relation
+
+Functionality related to normalization
+1) Computation of the attribute closure of a set of attributes X
+  provide table name(s) (as Input_FDS_R) and attributes option "F" to put all relation
+2)provide a list table(s) containing functional dependencies for both F1 and F2
