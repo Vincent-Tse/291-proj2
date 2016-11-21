@@ -54,7 +54,7 @@ def attrClos():
     print(closure)
     conn.commit()
 
-def attrequivalence():
+def attrEquivalence():
     pass
 def clearScreen():
     os.system("clear")
