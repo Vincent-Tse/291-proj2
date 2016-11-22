@@ -34,16 +34,13 @@ def main():
 
 
 def thirdNF(conn):
+    readInputRelation(conn)
     pass
 def BCNF(conn):
+    readInputRelation(conn)
     pass
 def attrClos():
-    c = conn.cursor()
-
-    c.execute("select * from Input_FDs_R1") #HELP!!!! I can't generalize to all table
-    relation = c.fetchall()
-
-    closure = raw_input("The attribute :")
+    relation = readInputRelation(conn)
     for dependency in relation:
         RHS = dependency[0]
         LHS = dependency[1]
@@ -54,8 +51,21 @@ def attrClos():
     print(closure)
     conn.commit()
 
+    
+    
 def attrEquivalence():
     pass
+
+def readInputRelation(conn):
+    c = conn.cursor()
+    while not relation:
+        table = raw_input("Enter the relation: ")
+        c.execute("select * from "+table+";")
+        relation = c.fetchall()
+    for row in relation:
+        FDlist.append([row[0].encode("utf-8"),row[1].encode("utf-8")])
+    return(FDlist)
+
 def clearScreen():
     os.system("clear")
 main()
