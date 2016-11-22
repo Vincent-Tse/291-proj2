@@ -16,3 +16,4 @@ Functionality related to normalization
 1) Computation of the attribute closure of a set of attributes X
   provide table name(s) (as Input_FDS_R) and attributes option "F" to put all relation
 2)provide a list table(s) containing functional dependencies for both F1 and F2
+  #???don't know what it mean
