@@ -66,20 +66,44 @@ def attrEquivalence():
 
 def readInputRelation(conn):
     c = conn.cursor()
-    FDlist =[]
     menu=[]
     c.execute("SELECT name FROM sqlite_master WHERE type='table';")
     rows=c.fetchall()
-    for i in range(len(rows)):
-        for item in rows[i]:
-            print(i,item)
-            menu.append(item)
-    #c.execute("SELECT * FROM "+menu[i-1]+";")
-    relation = c.fetchall()
+    while True:
+        print("Make selection")
+        for i in range(len(rows)):
+            for item in rows[i]:
+                item =item.encode("utf-8")
+                choice =str(i+1)+')'+item
+                print(choice)
+                menu.append(item)
+        try:
+            selection = int(raw_input("Selection: "))
+            if selection >len(rows)+1 or selection<1:
+                raise
+        except:
+            clearScreen()
+            print("Invalid Input")
+            raw_input("")
+            continue    # not an integer
+        else:
+            break
+    c.execute("SELECT * FROM "+menu[selection-1]+";")
+    rows = c.fetchall()
 
-    for row in relation:
-        FDlist.append([row[0].encode("utf-8"),row[1].encode("utf-8")])
-    return(FDlist)
+    table =[]
+    for row in rows:
+        line=[]
+        for i in range(len(row)):
+            if type(row[i]) == unicode:
+                data = row[i].encode("utf-8")
+            else:
+                data = row[i]
+            line.append(data)
+        table.append(line)
+    conn.commit()
+    return(table)
+
 
 def clearScreen():
     os.system("clear")
