@@ -73,20 +73,41 @@ def BCNF(conn):
     relation = "".join(set(relation))
     print(relation)
     print(fds)
-    for i in range(len(fds)):
+    j = 0
+    while True:
+        key = attrClos(fds, fds[j][0])
+        if sorted(key) == sorted(relation):
+            r1FD.append([fds[j][0],fds[j][1]])
+            BCNFls.append((fds[j][0]).replace(",",""))
+            fds.remove([fds[j][0],fds[j][1]])
+        if j == len(fds)-1:
+            break
+        j += 1
+    print("first superkeys", BCNFls)
+    print(fds)
+    i = 0
+    while True:
         implies = attrClos(fds, fds[i][0])
         if sorted(implies) != sorted(relation):
-            r1FD.append(fds[i][0],fds[i][1])
+            r1FD.append([fds[i][0],fds[i][1]])
             r1 = (fds[i][0]+fds[i][1]).replace(",","")
             BCNFls.append(r1)
+            print(i, fds[i][1])
             removechars.append(fds[i][1].split(","))
             for j in range(len(removechars[0])):
                 print(removechars)
                 relation = relation.replace(removechars[0][j],"")
             print(relation)
+            print(fds)
+            fds.remove([fds[i][0],fds[i][1]])
             removechars = []
+            print("end", len(fds))
         else:
-            BCNFls.append((fds[i][0]+fds[i][1]).replace(",",""))
+            BCNFls.append((fds[i][0]).replace(",",""))
+            fds.remove([fds[i][0],fds[i][1]])
+        if i == len(fds)-1:
+            break
+        i += 1
     print(BCNFls)
            
            
