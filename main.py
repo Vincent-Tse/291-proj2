@@ -66,12 +66,17 @@ def attrEquivalence():
 
 def readInputRelation(conn):
     c = conn.cursor()
-    relation =''
     FDlist =[]
-    while not relation:
-        #table = raw_input("Enter the relation: ")
-        c.execute("select * from Input_FDs_R1;")
-        relation = c.fetchall()
+    menu=[]
+    c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    rows=c.fetchall()
+    for i in range(len(rows)):
+        for item in rows[i]:
+            print(i,item)
+            menu.append(item)
+    #c.execute("SELECT * FROM "+menu[i-1]+";")
+    relation = c.fetchall()
+
     for row in relation:
         FDlist.append([row[0].encode("utf-8"),row[1].encode("utf-8")])
     return(FDlist)
