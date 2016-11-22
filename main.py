@@ -44,6 +44,7 @@ def thirdNF(conn):
         clearScreen()
         fds = readInputRelation(conn)
     fds = singleRHS(fds)
+    fds = eliminRedundantLHS(fds)
     #print(fds)
 
 
@@ -54,28 +55,36 @@ def singleRHS(fds):
             fd[1]=fd[1].split(',')
     #print(fds)
     return fds
-def eliminRedundantLHS(conn,fds):
+def eliminRedundantLHS(fds):
     for fd in fds:
         x=fd[0]
         y=fd[1]
-        if len(X) >1:
+        cont = True
+        while cont:
+            if len(x) <= 1:
+                break
             for singleX in x:
-                if attrClos(conn,singleX) == attrClos(conn,x):
-                    fd[0] = singleX
-
+                if attrClos(fds,x.replace(singleX,'')) == attrClos(fds,x):
+                    #bGH+ = BGHEF and #BH+ = BHEF can I delete bGH -> F?
+                    print(fd)
+                    print(attrClos(fds,x.replace(singleX,'')))
+                    print(attrClos(fds,x))
+                    fd[0] = x.replace(singleX,'')
+            if all(attrClos(fds,x.replace(singleX,'')) != attrClos(fds,x) for singleX in x):
+                cont = False
+    print(fds)
 
 def BCNF(conn):
     readInputRelation(conn)
     pass
-def attrClos(conn,closure):
+def attrClos(fds,closure):
     #closure = raw_input("attribute: ")
     #print(closure)
-    relation = readInputRelation(conn)
     while True:
         old = closure
-        for dependency in relation:
+        for dependency in fds:
             LHS = "".join(dependency[0].split(","))
-            RHS = "".join(dependency[1].split(","))
+            RHS = "".join(dependency[1])
             if all(char in closure for char in LHS) and not any(letter in closure for letter in RHS):
                 closure+=RHS
         if old == closure:
