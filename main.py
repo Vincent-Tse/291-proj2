@@ -43,35 +43,85 @@ def thirdNF(conn):
     while len(fds[0]) != 2:
         clearScreen()
         fds = readInputRelation(conn)
+
     fds = singleRHS(fds)
+    #print(fds)
     fds = eliminRedundantLHS(fds)
+    #print(fds)
+    eliminRedundantRHS(fds)
+
     #print(fds)
 
 
 def singleRHS(fds):
+    newfds=[]
     for i in range(len(fds)):
         fd = fds[i]
-        if ',' in fd[1]:
-            fd[1]=fd[1].split(',')
-    #print(fds)
-    return fds
+        fds[i][0] = fds[i][0].replace(",",'')
+        fds[i][1] = fds[i][1].replace(",",'')
+        if len(fd[1]) >1:
+            for j in range(len(fd[1])):
+                newfds.append([fd[0],fd[1][j]])
+        else:
+            newfds.append(fd)
+
+    return newfds
+
 def eliminRedundantLHS(fds):
-    for fd in fds:
-        x=fd[0]
-        y=fd[1]
+    for i in range(len(fds)):
+        fd = fds[i]
         cont = True
         while cont:
+            x=fd[0]
+            y=fd[1]
+
             if len(x) <= 1:
-                break
+                cont = False
+            old = x
             for singleX in x:
+                new = old
                 if attrClos(fds,x.replace(singleX,'')) == attrClos(fds,x):
                     #bGH+ = BGHEF and #BH+ = BHEF can I delete bGH -> F?
-                    print(fd)
-                    print(attrClos(fds,x.replace(singleX,'')))
-                    print(attrClos(fds,x))
-                    fd[0] = x.replace(singleX,'')
-            if all(attrClos(fds,x.replace(singleX,'')) != attrClos(fds,x) for singleX in x):
+                    fds[i][0] = x.replace(singleX,'')
+                    new = x.replace(singleX,'')
+                new = old
+            if old == new:
                 cont = False
+    return fds
+
+def eliminRedundantRHS(fds):#Infinite Loop!!!!!!!
+    print(fds)
+    cont = True
+    new = []
+    while cont:
+        new = []
+        change = False
+
+        for i in range(len(fds)):
+            line =[]
+            for j in range(len(fds[i])):
+                line.append(fds[i][j])
+            new.append(line)
+        for k in range(len(fds)):
+            x = fds[k][0]
+            cont = True
+            diff =new.pop(0)
+            print("old",fds)
+            print("new:",new)
+            print(attrClos(fds,x))
+            print(attrClos(new,x))
+            print("")
+            if attrClos(fds,x) == attrClos(new,x):
+                fds = new
+                change = True
+            else:
+                for i in range(len(fds)):
+                    line =[]
+                    for j in range(len(fds[i])):
+                        line.append(fds[i][j])
+                    new.append(line)
+        if not change:###
+            cont = False
     print(fds)
 
 def BCNF(conn):
@@ -80,16 +130,21 @@ def BCNF(conn):
 def attrClos(fds,closure):
     #closure = raw_input("attribute: ")
     #print(closure)
+    closure = closure.replace(',','')
     while True:
         old = closure
         for dependency in fds:
-            LHS = "".join(dependency[0].split(","))
-            RHS = "".join(dependency[1])
+            LHS = dependency[0]
+            RHS = dependency[1]
+            if ',' in LHS:
+                LHS = "".join(dependency[0].replace(',',''))
+            if ',' in RHS:
+                RHS = "".join(dependency[1].replace(',',''))
             if all(char in closure for char in LHS) and not any(letter in closure for letter in RHS):
                 closure+=RHS
         if old == closure:
             break
-    return closure
+    return sorted(closure)
 
 
 
