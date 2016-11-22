@@ -31,6 +31,8 @@ def main():
             clearScreen()
             BCNF(conn)
             return
+        else:
+            return
 
 
 def thirdNF(conn):
@@ -40,14 +42,20 @@ def BCNF(conn):
     readInputRelation(conn)
     pass
 def attrClos(conn):
+
+    closure = raw_input("attribute: ")
+    print(closure)
     relation = readInputRelation(conn)
-    for dependency in relation:
-        RHS = dependency[0]
-        LHS = dependency[1]
-        if RHS in closure:
-            for char in LHS:
-                if char not in closure:
-                    closure+=char
+    while True:
+        old = closure
+        for dependency in relation:
+            LHS = "".join(dependency[0].split(","))
+            RHS = "".join(dependency[1].split(","))
+            print(LHS,RHS)
+            if all(char in closure for char in LHS) and not any(letter in closure for letter in RHS):
+                closure+=RHS
+        if old == closure:
+            break
     print(closure)
     conn.commit()
 
@@ -60,9 +68,10 @@ def attrEquivalence():
 def readInputRelation(conn):
     c = conn.cursor()
     relation =''
+    FDlist =[]
     while not relation:
-        table = raw_input("Enter the relation: ")
-        c.execute("select * from "+table+";")
+        #table = raw_input("Enter the relation: ")
+        c.execute("select * from Input_FDs_R1;")
         relation = c.fetchall()
     for row in relation:
         FDlist.append([row[0].encode("utf-8"),row[1].encode("utf-8")])
@@ -70,9 +79,4 @@ def readInputRelation(conn):
 
 def clearScreen():
     os.system("clear")
-#main()
-
-
-database =raw_input("Enter the name of the database: ")
-conn = sqlite3.connect(database)
-attrClos(conn)
+main()
