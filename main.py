@@ -39,7 +39,7 @@ def thirdNF(conn):
 def BCNF(conn):
     readInputRelation(conn)
     pass
-def attrClos():
+def attrClos(conn):
     relation = readInputRelation(conn)
     for dependency in relation:
         RHS = dependency[0]
@@ -51,13 +51,15 @@ def attrClos():
     print(closure)
     conn.commit()
 
-    
-    
+
+
+
 def attrEquivalence():
     pass
 
 def readInputRelation(conn):
     c = conn.cursor()
+    relation =''
     while not relation:
         table = raw_input("Enter the relation: ")
         c.execute("select * from "+table+";")
@@ -68,4 +70,9 @@ def readInputRelation(conn):
 
 def clearScreen():
     os.system("clear")
-main()
+#main()
+
+
+database =raw_input("Enter the name of the database: ")
+conn = sqlite3.connect(database)
+attrClos(conn)

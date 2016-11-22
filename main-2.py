@@ -24,6 +24,7 @@ def main():
 
         if selection == 1:
             clearScreen()
+            attrClos(conn)
             thirdNF(conn)
             return
 
@@ -35,12 +36,12 @@ def main():
             return
 
 def thirdNF(conn):
-    readInputRelation(conn)
+    #readInputRelation(conn)
     pass
 def BCNF(conn):
-    readInputRelation(conn)
+    #readInputRelation(conn)
     pass
-def attrClos():
+def attrClos(conn):
     relation = readInputRelation(conn)
     for dependency in relation:
         RHS = dependency[0]
@@ -67,7 +68,7 @@ def readInputRelation(conn):
         for item in rows[i]:
             print(i,item)
             menu.append(item)
-    c.execute("SELECT * FROM "+menu[i-1]+";")
+    #c.execute("SELECT * FROM "+menu[i-1]+";")
     relation = c.fetchall()
 
     for row in relation:
