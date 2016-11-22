@@ -3,6 +3,7 @@ import os
 
 
 def main():
+    #Do we have to error check the database name?
     database =raw_input("Enter the name of the database: ")
     conn = sqlite3.connect(database)
     c = conn.cursor()
@@ -10,9 +11,10 @@ def main():
     while True:
         print("""Make Selection\n
 1) 3NF schema
-2) BCNF schma
-3)Exit\n""")
+2) BCNF schema
+3)Exit""")
         try:
+            print("-"*30)
             selection = int(raw_input("Selection: "))
             if selection not in (1, 2,3):
                 raise
@@ -36,15 +38,38 @@ def main():
 
 
 def thirdNF(conn):
-    readInputRelation(conn)
-    pass
+
+    fds = readInputRelation(conn)
+    while len(fds[0]) != 2:
+        clearScreen()
+        fds = readInputRelation(conn)
+    fds = singleRHS(fds)
+    #print(fds)
+
+
+def singleRHS(fds):
+    for i in range(len(fds)):
+        fd = fds[i]
+        if ',' in fd[1]:
+            fd[1]=fd[1].split(',')
+    #print(fds)
+    return fds
+def eliminRedundantLHS(conn,fds):
+    for fd in fds:
+        x=fd[0]
+        y=fd[1]
+        if len(X) >1:
+            for singleX in x:
+                if attrClos(conn,singleX) == attrClos(conn,x):
+                    fd[0] = singleX
+
+
 def BCNF(conn):
     readInputRelation(conn)
     pass
-def attrClos(conn):
-
-    closure = raw_input("attribute: ")
-    print(closure)
+def attrClos(conn,closure):
+    #closure = raw_input("attribute: ")
+    #print(closure)
     relation = readInputRelation(conn)
     while True:
         old = closure
@@ -55,8 +80,8 @@ def attrClos(conn):
                 closure+=RHS
         if old == closure:
             break
-    print(closure)
-    conn.commit()
+    return closure
+
 
 
 
@@ -71,6 +96,7 @@ def readInputRelation(conn):
     rows=c.fetchall()
     while True:
         print("Make selection")
+        print
         for i in range(len(rows)):
             for item in rows[i]:
                 item =item.encode("utf-8")
@@ -78,6 +104,7 @@ def readInputRelation(conn):
                 print(choice)
                 menu.append(item)
         try:
+            print("-"*30)
             selection = int(raw_input("Selection: "))
             if selection >len(rows)+1 or selection<1:
                 raise
@@ -102,7 +129,7 @@ def readInputRelation(conn):
             line.append(data)
         table.append(line)
     conn.commit()
-    return(table)
+    return table
 
 
 def clearScreen():
