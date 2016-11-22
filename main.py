@@ -51,7 +51,6 @@ def attrClos(conn):
         for dependency in relation:
             LHS = "".join(dependency[0].split(","))
             RHS = "".join(dependency[1].split(","))
-            print(LHS,RHS)
             if all(char in closure for char in LHS) and not any(letter in closure for letter in RHS):
                 closure+=RHS
         if old == closure:
