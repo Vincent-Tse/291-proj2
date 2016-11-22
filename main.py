@@ -16,19 +16,17 @@ def main():
         try:
             print("-"*30)
             selection = int(raw_input("Selection: "))
-            if selection not in (1, 2,3):
+            if selection not in (1,2,3):
                 raise
         except:
             clearScreen()
             print("Invalid Input")
             raw_input("")
             continue    # not an integer
-
         if selection == 1:
             clearScreen()
             thirdNF(conn)
             return
-
         elif selection == 2:
             clearScreen()
             BCNF(conn)
@@ -36,16 +34,13 @@ def main():
         else:
             return
 
-
 def thirdNF(conn):
-
     fds = readInputRelation(conn)
     while len(fds[0]) != 2:
         clearScreen()
         fds = readInputRelation(conn)
     fds = singleRHS(fds)
     #print(fds)
-
 
 def singleRHS(fds):
     for i in range(len(fds)):
@@ -54,6 +49,7 @@ def singleRHS(fds):
             fd[1]=fd[1].split(',')
     #print(fds)
     return fds
+
 def eliminRedundantLHS(conn,fds):
     for fd in fds:
         x=fd[0]
@@ -63,28 +59,51 @@ def eliminRedundantLHS(conn,fds):
                 if attrClos(conn,singleX) == attrClos(conn,x):
                     fd[0] = singleX
 
-
 def BCNF(conn):
-    readInputRelation(conn)
-    pass
-def attrClos(conn,closure):
+    relation = ""
+    removechars = []
+    r1 = ""
+    r1FD = []
+    BCNFls = []
+    fds = readInputRelation(conn)
+    for fd in fds:
+        for side in fd:
+            relation += side
+    relation = relation.replace(",","")
+    relation = "".join(set(relation))
+    print(relation)
+    print(fds)
+    for i in range(len(fds)):
+        implies = attrClos(fds, fds[i][0])
+        if sorted(implies) != sorted(relation):
+            r1FD.append(fds[i][0],fds[i][1])
+            r1 = (fds[i][0]+fds[i][1]).replace(",","")
+            BCNFls.append(r1)
+            removechars.append(fds[i][1].split(","))
+            for j in range(len(removechars[0])):
+                print(removechars)
+                relation = relation.replace(removechars[0][j],"")
+            print(relation)
+            removechars = []
+        else:
+            BCNFls.append((fds[i][0]+fds[i][1]).replace(",",""))
+    print(BCNFls)
+           
+           
+def attrClos(fds,closure):
     #closure = raw_input("attribute: ")
     #print(closure)
-    relation = readInputRelation(conn)
+    closure = closure.replace(",","")
     while True:
         old = closure
-        for dependency in relation:
-            LHS = "".join(dependency[0].split(","))
-            RHS = "".join(dependency[1].split(","))
+        for dependency in fds:
+            LHS = "".join(dependency[0].replace(",",""))
+            RHS = "".join(dependency[1].replace(",",""))
             if all(char in closure for char in LHS) and not any(letter in closure for letter in RHS):
                 closure+=RHS
         if old == closure:
             break
     return closure
-
-
-
-
 
 def attrEquivalence():
     pass
