@@ -61,56 +61,46 @@ def eliminRedundantLHS(conn,fds):
 
 def BCNF(conn):
     relation = ""
-    removechars = []
-    r1 = ""
-    r1FD = []
-    BCNFls = []
+    rFD = []
+    superkeyls = []
+    newfds = []
     fds = readInputRelation(conn)
     for fd in fds:
         for side in fd:
             relation += side
     relation = relation.replace(",","")
     relation = "".join(set(relation))
-    print(relation)
-    print(fds)
-    j = 0
-    while True:
+    for j in range(len(fds)):
         key = attrClos(fds, fds[j][0])
         if sorted(key) == sorted(relation):
-            r1FD.append([fds[j][0],fds[j][1]])
-            BCNFls.append((fds[j][0]).replace(",",""))
-            fds.remove([fds[j][0],fds[j][1]])
-        if j == len(fds)-1:
-            break
-        j += 1
-    print("first superkeys", BCNFls)
-    print(fds)
-    i = 0
-    while True:
-        implies = attrClos(fds, fds[i][0])
-        if sorted(implies) != sorted(relation):
-            r1FD.append([fds[i][0],fds[i][1]])
-            r1 = (fds[i][0]+fds[i][1]).replace(",","")
-            BCNFls.append(r1)
-            print(i, fds[i][1])
-            removechars.append(fds[i][1].split(","))
-            for j in range(len(removechars[0])):
-                print(removechars)
-                relation = relation.replace(removechars[0][j],"")
-            print(relation)
-            print(fds)
-            fds.remove([fds[i][0],fds[i][1]])
-            removechars = []
-            print("end", len(fds))
+            superkeyls.append((fds[j][0]).replace(",",""))
         else:
-            BCNFls.append((fds[i][0]).replace(",",""))
-            fds.remove([fds[i][0],fds[i][1]])
-        if i == len(fds)-1:
-            break
-        i += 1
-    print(BCNFls)
-           
-           
+            newfds.append([fds[j][0],fds[j][1]])
+    for r in range(len(newfds)):
+        newfds[r] = '|'.join(newfds[r])
+    newfds.sort(key=len)
+    print(newfds)
+    for i in range(len(fds)-len(superkeyls)):
+        print(i)
+        print(newfds)
+        print(changefds)
+        LHS = changefds[i][0]
+        RHS = changefds[i][1].split(",")
+        newkey = attrClos(changefds, LHS)
+        if sorted(newkey) != sorted(relation):
+            print(relation)
+            if len(RHS) > 1:
+                for d in range(len(RHS)):
+                    if RHS[d] not in relation:
+                        RHS.remove(RHS[d])
+                changefds.remove([newfds[i][0],newfds[i][1]])
+                rFD.append([LHS,RHS])
+                for q in range(len(RHS)):
+                    relation = relation.replace(RHS[q],"")
+            else:
+                rFD.append([LHS,RHS])
+    print(rFD)
+   
 def attrClos(fds,closure):
     #closure = raw_input("attribute: ")
     #print(closure)
