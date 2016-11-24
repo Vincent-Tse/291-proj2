@@ -38,19 +38,31 @@ def main():
 
 
 def thirdNF(conn):
-
+    print("Input the relation of the function Dependency")
     fds = readInputRelation(conn)
     while len(fds[0]) != 2:
         clearScreen()
+        print("Input the relation of the function Dependency")
         fds = readInputRelation(conn)
 
     fds = singleRHS(fds)
     #print(fds)
     fds = eliminRedundantLHS(fds)
     #print(fds)
-    eliminRedundantRHS(fds)
+    fds = eliminRedundantRHS(fds)
+    fds = mergeLHS(fds)
+    schemas = fdsToSchema(fds,conn)
+    choice = ''
+    while choice not in ('y','n'):
+        try:
+            choice = raw_input("Generate relation in 3NF schema?(Y/N)").lower()
+        except:
+            pass
 
-    #print(fds)
+    if choice == 'y':
+        generateRelation(schemas,fds,conn)
+    else:
+        return
 
 
 def singleRHS(fds):
@@ -89,41 +101,180 @@ def eliminRedundantLHS(fds):
                 cont = False
     return fds
 
-def eliminRedundantRHS(fds):#Infinite Loop!!!!!!!
+def eliminRedundantRHS(fds):
     print(fds)
-    cont = True
     new = []
-    while cont:
-        new = []
-        change = False
 
+    for k in range(len(fds)):
+        new = []
         for i in range(len(fds)):
             line =[]
             for j in range(len(fds[i])):
                 line.append(fds[i][j])
             new.append(line)
-        for k in range(len(fds)):
+        if k<= i:
             x = fds[k][0]
             cont = True
-            diff =new.pop(0)
-            print("old",fds)
-            print("new:",new)
-            print(attrClos(fds,x))
-            print(attrClos(new,x))
-            print("")
-            if attrClos(fds,x) == attrClos(new,x):
+            diff =new.pop(k)
+            if attrClos(fds,x) == attrClos(new,x) and fds != new:
                 fds = new
-                change = True
-            else:
-                for i in range(len(fds)):
-                    line =[]
-                    for j in range(len(fds[i])):
-                        line.append(fds[i][j])
-                    new.append(line)
-        if not change:###
-            cont = False
-    print(fds)
 
+
+        if k == i:
+            break
+    return fds
+
+def mergeLHS(fds):
+    new = []
+    for i in range(len(fds)):
+        for j in range(i+1,len(fds)):
+            if fds[i][0] == fds[j][0]:
+                fds[i][1]+= fds[j][1]
+            fds[i][1]="".join(sorted(fds[i][1]))
+        add = False
+        if all(fds[i][0] != new[k][0] for k in range(len(new))):
+            new.append(fds[i])
+
+    return new
+
+def fdsToSchema(fds,conn):
+    global outputPrefix
+    schemas =[]
+    clearScreen()
+    print("Schema:")
+    print("="*30)
+    c = conn.cursor()
+    prefix = 'Input_FDS_R%'
+    c.execute("SELECT name FROM sqlite_master WHERE name like 'Input_FDs_R%';")
+    rows=c.fetchall()
+    name =rows[0][0].encode("utf-8")
+
+    outputPrefix = name.replace("In","Out")+'_'
+
+    fdSchemas = []
+    relationSchemas =[]
+    coverAttr = ''
+    for fd in fds:
+        fdschema = outputPrefix+''.join(fd)
+        relationSchema = fdschema.replace("_FDs",'')
+        fdSchemas.append(fdschema)
+        relationSchemas.append(relationSchema)
+        coverAttr +=''.join(set(fd))
+    coverAttr = ''.join(set(coverAttr))
+    ###########################################
+    c.execute("SELECT * from "+name+";")
+    rows = c.fetchall()
+    table =[]
+    for row in rows:
+        line=[]
+        for i in range(len(row)):
+            if type(row[i]) == unicode:
+                data = row[i].encode("utf-8")
+            else:
+                data = row[i]
+            line.append(data)
+        table.append(line)
+    allAttr = ''
+    for fd in table:
+        for side in fd:
+            allAttr += side
+    allAttr = allAttr.replace(",","")
+    allAttr = "".join(set(allAttr))
+    ##########################################
+    diff = ""
+    for char in allAttr:
+        if char not in coverAttr:
+            diff += char
+
+    c.execute("SELECT * from "+name+";")
+    rows = c.fetchall()
+    for row in rows:
+        for i in range(2):
+            if diff in row[i]:
+                missing = row[i].encode("utf-8").replace(",","")
+                missingSchema = outputPrefix.replace("_FDs","")+missing
+                relationSchemas.append(missingSchema)
+    schemas.append(fdSchemas)
+    schemas.append(relationSchemas)
+
+    for types in schemas:
+        for schema in types:
+            print (schema)
+    return schemas
+
+def generateRelation(schemas,fds,conn):
+    c = conn.cursor()
+    #create table for function dependency
+    for i in range(len(schemas[0])):
+        c.execute("DROP table if exists "+ schemas[0][i] + ";")
+        command = "create table "+schemas[0][i]+"( LHS TEXT,RHS TEXT);"
+        c.execute(command)
+        conn.commit()
+        command = "insert into "+schemas[0][i] +" values( '"+fds[i][0]+"','"+fds[i][1]+"' );"
+        c.execute(command)
+        conn.commit()
+    #create table for data
+    c.execute("SELECT * from sqlite_master WHERE name like 'Input_R%'")
+    rows = c.fetchall()
+    createCommand = rows[0][4].encode("utf-8")
+    originalName = rows[0][1].encode("utf-8")
+    print(originalName)
+    for i in range(len(schemas[1])):
+        attr = schemas[1][i].replace(outputPrefix.replace("_FDs",''),'')
+        c.execute("DROP table if exists "+ schemas[1][i] + ";")
+        individualCreateCommand =createCommand.replace(originalName,schemas[1][i])
+        individualCreateCommand =individualCreateCommand.split('\n')
+        remove=[]
+
+        l = 0
+        for line in individualCreateCommand:
+            if l not in (0,len(individualCreateCommand)-1):
+                if all(char not in line[2] for char in attr):
+                    remove.append(line)
+            l+=1
+        for item in remove:
+            individualCreateCommand.remove(item)
+
+        if  ',' in individualCreateCommand[-2]:
+            individualCreateCommand[-2] =individualCreateCommand[-2].replace(',','')
+
+        individualCreateCommand =''.join(individualCreateCommand).replace(";",'')
+        for j in range(len(fds)):
+            fd = fds[j]
+            if all(char in fd[0] or char in fd[1] for char in attr):
+                pk = fd[0]
+                break
+            else:
+                if j == len(fd)-1:
+                    pk = ''
+        if pk != '':
+            key = "\nPRIMARY KEY "
+            key+= '('
+            for k in range(len(pk)):
+                key +="'"+pk[k]+"'"
+                if  k != len(fd)-1 and len(pk) != 1:
+                    key += ','
+            key+= ')'
+            individualCreateCommand =''.join(individualCreateCommand)+','
+            individualCreateCommand =individualCreateCommand.replace(')','')+key+'\n);'
+        c.execute(individualCreateCommand)
+        conn.commit()
+        #fill table with data
+
+        value =''
+        print(attr)
+        if pk != '':
+            for m in range(len(pk)):
+                value += attr[m]
+                if  m != len(pk)-1 and len(pk) != 1:
+                    value += ','
+                print (value)
+            fillDataCommand = "insert into "+schemas[1][i] +"("+value+")\n"
+            fillDataCommand +="SELECT Distinct "+value+" FROM "+originalName+";"
+            print(fillDataCommand)
+            c.execute(fillDataCommand)
+        conn.commit()
+#########################################################################################
 def BCNF(conn):
     readInputRelation(conn)
     pass
@@ -194,7 +345,6 @@ def readInputRelation(conn):
         table.append(line)
     conn.commit()
     return table
-
 
 def clearScreen():
     os.system("clear")
