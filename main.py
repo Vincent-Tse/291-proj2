@@ -96,27 +96,31 @@ def isSuperKey(fds,closure,relation):
 def BCNF(conn):
     startingRelation = getStartRelation(conn)
     fds = errorCheckFDs(conn)
-    print(startingRelation)
-    print(fds)
     resultRelations = []
     changefds = []
-    for i in range(len(fds)):
-        changefds.append(fds[i])
+    for i in fds:
+        changefds.append(i)
     for i in range(len(fds)):
         lhs = changefds[i][0]
         rhs = changefds[i][1]
         if not isSuperKey(changefds,lhs,startingRelation):
+            resultRelations.append(changefds[i])
             for char in rhs:
                 startingRelation = startingRelation.replace(char,"")
-                resultRelations.append(changefds[i][0]+changefds[i][1])
-                changefds.remove([changefds[i][0],changefds[i][1]])
-                changefds[i][0] = changefds[i][0].replace(char,"")
-                changefds[i][1] = changefds[i][1].replace(char,"")
-            print(changefds)
-            print(startingRelation)
-            print(resultRelations)
-
-    
+                for d in range(i+1,len(fds)):
+                    if char in changefds[d][0] or char in changefds[d][1]:
+                        changefds[d][0] = changefds[d][0].replace(char,"")
+                        changefds[d][1] = changefds[d][1].replace(char,"")
+                        for g in range(len(changefds)):
+                            if changefds[g][0] == "" or changefds[g][1] == "":
+                                changefds[g] = ["",""]
+    index = []
+    for h in range(len(resultRelations)):
+        if "" in resultRelations[h]:
+            index.append(h)
+    for dex in range(len(index)):
+        resultRelations.pop(index[dex]-dex)
+    return resultRelations
 
 def attrClos(fds,closure):
     #closure = raw_input("attribute: ")
