@@ -98,6 +98,15 @@ def BCNF(conn):
     fds = errorCheckFDs(conn)
     resultRelations = []
     changefds = []
+    c = conn.cursor()
+    c.execute("SELECT * FROM sqlite_master WHERE name LIKE 'Input_FDs_R%'")
+    rows = c.fetchall()
+    originalName = rows[0][1].encode("utf-8")
+    c.execute("SELECT * FROM " +originalName)
+    rows = c.fetchall()
+    rows2 = []
+    for row in rows:
+        rows2.append([row[0].encode("utf-8"),row[1].encode("utf-8")])
     for i in fds:
         changefds.append(i)
     for i in range(len(fds)):
@@ -114,12 +123,19 @@ def BCNF(conn):
                         for g in range(len(changefds)):
                             if changefds[g][0] == "" or changefds[g][1] == "":
                                 changefds[g] = ["",""]
+        else:
+            resultRelation.append(lhs)
+            changefds[i] = ["",""]
     index = []
     for h in range(len(resultRelations)):
         if "" in resultRelations[h]:
             index.append(h)
     for dex in range(len(index)):
         resultRelations.pop(index[dex]-dex)
+    if all(attrClos(resultRelations,fd[0]) == attrClos(rows2,fd[0]) for fd in resultRelations) and all(attrClos(resultRelations,fd[0]) == attrClos(rows2,fd[0]) for fd in rows2):
+        print("Dependency Preserving")
+    else:
+        print("Not Dependecy Preserving")
     return resultRelations
 
 def attrClos(fds,closure):
